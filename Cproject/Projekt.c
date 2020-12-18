@@ -1,39 +1,65 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
 #include<stdlib.h>
+#include<stdbool.h>
 #include<malloc.h>
 
 typedef struct cvor* Pozicija;
 
 typedef struct cvor
 {
-	int element;
+	long element;
 	Pozicija next;
 }Cvor;
 
-void DodajCvor(Pozicija, int);
+bool isNum(char);
 
-void UkloniCvor(Pozicija);
+long kalkulator(long, long, char);
+
+void Push(Pozicija, long);
+
+long Pop(Pozicija);
 
 Pozicija AlocirajNoviElement();
 
-void IspisListe(Pozicija);
-
 int main()
 {
-	int broj;
+	char postfix[20];
+	long op1, op2;
+	long rezultat;
+	FILE* datoteka;
 	Pozicija head = NULL;
 	head = (Pozicija)malloc(sizeof(Cvor));
 	head->next = NULL;
 	
-	printf("Unesi broj: ");
-	scanf("%d", &broj);
+	datoteka = fopen("postfix.txt", "r");
+
+	while (!feof(datoteka))
+	{
+		fscanf(datoteka, "%s", postfix);
+
+		if (isNum(postfix[0]))
+			Push(head, atoi(postfix));
+		
+		else
+		{
+			op1 = Pop(head);
+			op2 = Pop(head);
+			Push(head, kalkulator(op1, op2, postfix[0]));
+		}
+	}
+	
+	rezultat = Pop(head);
+
+	printf("%d", rezultat);
+
+	fclose(datoteka);
 	
 
 	return 0;
 }
 
-void DodajCvor(Pozicija head, int broj)
+void Push(Pozicija head, long broj)
 {
 	Pozicija noviCvor = AlocirajNoviElement();
 	while (head->next != NULL)
@@ -52,13 +78,45 @@ Pozicija AlocirajNoviElement()
 	return novi;
 }
 
-void IspisListe(Pozicija head)
+
+
+long Pop(Pozicija head)
 {
-	head = head->next;
-	while (head->next != NULL)
+	Pozicija pom;
+	long op;
+	while (head->next->next != NULL)
 	{
-		printf("%d  ", head->element);
 		head = head->next;
 	}
-	printf("%d  ", head->element);
+	op = head->next->element;
+	free(head->next);
+	head->next = NULL;
+	return op;
+}
+
+bool isNum(char simbol)
+{
+	return (simbol >= '0' && simbol <= '9');
+}
+
+long kalkulator(long op1, long op2, char znak)
+{
+	switch (znak)
+	{
+	case '+':
+		return op1 + op2;
+		break;
+	case '-':
+		return op1 - op2;
+		break;
+	case '*':
+		return op1 * op2;
+		break;
+	case '/':
+		return op1 / op2;
+		break;
+	default:
+		return -2;
+		break;
+	}
 }
